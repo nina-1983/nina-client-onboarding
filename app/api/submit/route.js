@@ -17,6 +17,8 @@ export async function POST(request) {
       Email: rich(body.email || ""),
       Phone: rich(body.phone || ""),
       Company: rich(body.company || ""),
+      Address: rich(body.address || ""),
+      Postcode: rich(body.postcode || ""),
       Notes: rich(body.notes || ""),
       "Date Submitted": dateProp(body.submittedAt),
     };
