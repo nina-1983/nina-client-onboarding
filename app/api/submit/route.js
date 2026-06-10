@@ -13,12 +13,12 @@ export async function POST(request) {
     const body = await request.json();
 
     const properties = {
-      Name: title(body.name || "Untitled"),
+      Clients: title(body.name || "Untitled"),
       Email: rich(body.email || ""),
       Phone: rich(body.phone || ""),
       Company: rich(body.company || ""),
-      "Project Details": rich(body.notes || ""),
-      "Submitted At": dateProp(body.submittedAt),
+      Notes: rich(body.notes || ""),
+      "Date Submitted": dateProp(body.submittedAt),
     };
 
     const page = await notion.pages.create({
