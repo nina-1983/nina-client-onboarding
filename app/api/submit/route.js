@@ -36,7 +36,13 @@ async function createContract(data) {
   const drive = google.drive({ version: "v3", auth });
   const docs = google.docs({ version: "v1", auth });
 
-  const templateId = process.env.GOOGLE_DOC_TEMPLATE_ID;
+  const templateMap = {
+    "Retainer":   "1dvPMbytG955PqPn2_FDaBqr84zTikXCimAFnchGmGks",
+    "Activation": "1UNqJbf5CrICMrDjivHyDcIlfEapOa6jeFBx1dQ9-yMs",
+    "Nurture":    "1eddQlmh79VzsIdcQdDCoFKJWSSaCK7tqGVc4_DwXNpI",
+    "Growth":     "1NCkNazSh4__LMfKjrikpgFQPsglNKjSpJYv4tqrQs6k",
+  };
+  const templateId = templateMap[data.package] || process.env.GOOGLE_DOC_TEMPLATE_ID;
   const today = new Date().toLocaleDateString("en-GB", {
     day: "numeric", month: "long", year: "numeric",
   });
@@ -73,6 +79,17 @@ async function createContract(data) {
     },
   });
 
+  // Share the new doc with Nina so it appears in her Drive
+  await drive.permissions.create({
+    fileId: docId,
+    requestBody: {
+      role: "writer",
+      type: "user",
+      emailAddress: "nina@nina-mistry.com",
+    },
+    sendNotificationEmail: false,
+  });
+
   return `https://docs.google.com/document/d/${docId}/edit`;
 }
 
@@ -105,7 +122,7 @@ export async function POST(request) {
 
     const [page, contractUrl] = await Promise.all([
       notion.pages.create({ parent: { database_id: DB_ID }, properties }),
-      process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_DOC_TEMPLATE_ID
+      process.env.GOOGLE_CLIENT_ID && body.package && body.package !== "Other"
         ? createContract(body)
         : Promise.resolve(null),
     ]);
