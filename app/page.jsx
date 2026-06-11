@@ -72,7 +72,7 @@ export default function ClientOnboarding() {
           </p>
         </header>
 
-        <div style={s.card}>
+        <div style={s.card} className="form-card">
           <div style={s.cardAccent} />
 
           {errorMessage && <div style={s.errorBox}>{errorMessage}</div>}
@@ -99,7 +99,7 @@ export default function ClientOnboarding() {
                   <input type="text" value={data.company} onChange={e => update("company", e.target.value)}
                     required placeholder="Your Business Ltd" style={s.input} />
                 </Field>
-                <div style={s.twoCol}>
+                <div style={s.twoCol} className="two-col">
                   <Field label="Address line 1">
                     <input type="text" value={data.address} onChange={e => update("address", e.target.value)}
                       required placeholder="123 Main Street" style={s.input} />
@@ -505,9 +505,18 @@ const css = `
     animation: fadeUp 0.5s ease 0.5s forwards;
   }
 
-  @media (max-width: 560px) {
-    div[style*="gridTemplateColumns: 1fr 1fr"] {
+  @media (max-width: 600px) {
+    .two-col {
       grid-template-columns: 1fr !important;
+    }
+    .form-card {
+      padding: 28px 20px !important;
+    }
+    nav {
+      padding: 16px 20px !important;
+    }
+    nav span, nav a {
+      font-size: 11px !important;
     }
   }
 `;
