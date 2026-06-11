@@ -44,10 +44,11 @@ async function createContract(data) {
     day: "numeric", month: "long", year: "numeric",
   });
 
-  const copy = await drive.files.copy({
+   const copy = await drive.files.copy({
     fileId: templateId,
     requestBody: {
       name: `Contract — ${data.name} (${today})`,
+      parents: ["1SHIFEI61p2njCNpgk4YytKYuFJ0PwFal"],
     },
   });
 
