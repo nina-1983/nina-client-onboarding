@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
-import { notion, DB_ID, title, rich, dateProp } from "@/lib/notion";
+import { notion, DB_ID, title, rich, email, dateProp } from "@/lib/notion";
+
+function phone(value) {
+  return { phone_number: value || null };
+}
 
 export async function POST(request) {
   try {
-    export async function POST(request) {
-  try {
     console.log("TOKEN:", process.env.NOTION_TOKEN?.slice(0, 15), "length:", process.env.NOTION_TOKEN?.length);
+
     if (!process.env.NOTION_TOKEN || !DB_ID) {
       return NextResponse.json(
         { error: "Missing Notion configuration" },
@@ -17,8 +20,8 @@ export async function POST(request) {
 
     const properties = {
       Clients: title(body.name || "Untitled"),
-      Email: rich(body.email || ""),
-      Phone: rich(body.phone || ""),
+      Email: email(body.email || ""),
+      Phone: phone(body.phone || ""),
       Company: rich(body.company || ""),
       Address: rich(body.address || ""),
       Postcode: rich(body.postcode || ""),
