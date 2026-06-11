@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { notion, DB_ID, title, rich, email, dateProp } from "@/lib/notion";
+import { notion, DB_ID, title, rich, dateProp } from "@/lib/notion";
 
 export async function POST(request) {
   try {
@@ -14,14 +14,17 @@ export async function POST(request) {
 
     const properties = {
       Clients: title(body.name || "Untitled"),
-      Email: email(body.email || ""),
+      Email: rich(body.email || ""),
       Phone: rich(body.phone || ""),
       Company: rich(body.company || ""),
       Address: rich(body.address || ""),
       Postcode: rich(body.postcode || ""),
       Notes: rich(body.notes || ""),
-      "Date Submitted": dateProp(body.submittedAt),
     };
+
+    if (body.submittedAt) {
+      properties["Date Submitted"] = dateProp(body.submittedAt);
+    }
 
     const page = await notion.pages.create({
       parent: { database_id: DB_ID },
