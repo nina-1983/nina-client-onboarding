@@ -44,7 +44,7 @@ export async function POST(request) {
     const b = await request.json();
 
     const properties = {
-      Client: title(b.clientName || "Untitled"),
+      Clients: title(b.clientName || "Untitled"),
       Website: rich(fmt([["Platform", b.websitePlatform], ["URL", b.websiteUrl], ["Username", b.websiteUser], ["Password", b.websitePass]])),
       Membership: rich(fmt([["Platform", b.memberPlatform], ["URL", b.memberUrl], ["Username", b.memberUser], ["Password", b.memberPass]])),
       Hosting: rich(fmt([["Provider", b.hostingProvider], ["URL", b.hostingUrl], ["Username", b.hostingUser], ["Password", b.hostingPass]])),
