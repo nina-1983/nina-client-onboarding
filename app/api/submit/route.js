@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { google } from "googleapis";
 import { notion, DB_ID, title, rich, email, dateProp } from "@/lib/notion";
 
 const ALLOWED_ORIGINS = [
@@ -23,6 +24,68 @@ export async function OPTIONS(request) {
 
 function phone(value) {
   return { phone_number: value || null };
+}
+
+async function createContract(data) {
+  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: [
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/documents",
+    ],
+  });
+
+  const drive = google.drive({ version: "v3", auth });
+  const docs = google.docs({ version: "v1", auth });
+
+  const templateId = process.env.GOOGLE_DOC_TEMPLATE_ID;
+  const today = new Date().toLocaleDateString("en-GB", {
+    day: "numeric", month: "long", year: "numeric",
+  });
+
+  const copy = await drive.files.copy({
+    fileId: templateId,
+    requestBody: {
+      name: `Contract — ${data.name} (${today})`,
+    },
+  });
+
+  const docId = copy.data.id;
+
+  const replacements = [
+    ["{{client_name}}",    data.name      || ""],
+    ["{{client_email}}",   data.email     || ""],
+    ["{{client_phone}}",   data.phone     || ""],
+    ["{{client_company}}", data.company   || ""],
+    ["{{client_address}}", data.address   || ""],
+    ["{{client_postcode}}",data.postcode  || ""],
+    ["{{date}}",           today],
+  ];
+
+  await docs.documents.batchUpdate({
+    documentId: docId,
+    requestBody: {
+      requests: replacements.map(([find, replace]) => ({
+        replaceAllText: {
+          containsText: { text: find, matchCase: true },
+          replaceText: replace,
+        },
+      })),
+    },
+  });
+
+  await drive.permissions.create({
+    fileId: docId,
+    requestBody: {
+      role: "writer",
+      type: "user",
+      emailAddress: "nina@nina-mistry.com",
+    },
+    sendNotificationEmail: false,
+  });
+
+  return `https://docs.google.com/document/d/${docId}/edit`;
 }
 
 export async function POST(request) {
@@ -52,17 +115,19 @@ export async function POST(request) {
       properties["Date Submitted"] = dateProp(body.submittedAt);
     }
 
-    const page = await notion.pages.create({
-      parent: { database_id: DB_ID },
-      properties,
-    });
+    const [page, contractUrl] = await Promise.all([
+      notion.pages.create({ parent: { database_id: DB_ID }, properties }),
+      process.env.GOOGLE_SERVICE_ACCOUNT && process.env.GOOGLE_DOC_TEMPLATE_ID
+        ? createContract(body)
+        : Promise.resolve(null),
+    ]);
 
     return NextResponse.json(
-      { ok: true, id: page.id, url: page.url },
+      { ok: true, id: page.id, contractUrl },
       { headers: corsHeaders(origin) }
     );
   } catch (error) {
-    console.error("Notion error:", error);
+    console.error("Submit error:", error);
     return NextResponse.json(
       { error: error.message || "Could not save submission" },
       { status: 500, headers: corsHeaders(origin) }
