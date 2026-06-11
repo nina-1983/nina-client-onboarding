@@ -3,6 +3,9 @@ import { notion, DB_ID, title, rich, dateProp } from "@/lib/notion";
 
 export async function POST(request) {
   try {
+    export async function POST(request) {
+  try {
+    console.log("TOKEN:", process.env.NOTION_TOKEN?.slice(0, 15), "length:", process.env.NOTION_TOKEN?.length);
     if (!process.env.NOTION_TOKEN || !DB_ID) {
       return NextResponse.json(
         { error: "Missing Notion configuration" },
