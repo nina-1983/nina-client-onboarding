@@ -27,14 +27,11 @@ function phone(value) {
 }
 
 async function createContract(data) {
-  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: [
-      "https://www.googleapis.com/auth/drive",
-      "https://www.googleapis.com/auth/documents",
-    ],
-  });
+  const auth = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET
+  );
+  auth.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
 
   const drive = google.drive({ version: "v3", auth });
   const docs = google.docs({ version: "v1", auth });
@@ -44,7 +41,7 @@ async function createContract(data) {
     day: "numeric", month: "long", year: "numeric",
   });
 
-   const copy = await drive.files.copy({
+  const copy = await drive.files.copy({
     fileId: templateId,
     requestBody: {
       name: `Contract — ${data.name} (${today})`,
@@ -74,16 +71,6 @@ async function createContract(data) {
         },
       })),
     },
-  });
-
-  await drive.permissions.create({
-    fileId: docId,
-    requestBody: {
-      role: "writer",
-      type: "user",
-      emailAddress: "nina@nina-mistry.com",
-    },
-    sendNotificationEmail: false,
   });
 
   return `https://docs.google.com/document/d/${docId}/edit`;
@@ -118,7 +105,7 @@ export async function POST(request) {
 
     const [page, contractUrl] = await Promise.all([
       notion.pages.create({ parent: { database_id: DB_ID }, properties }),
-      process.env.GOOGLE_SERVICE_ACCOUNT && process.env.GOOGLE_DOC_TEMPLATE_ID
+      process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_DOC_TEMPLATE_ID
         ? createContract(body)
         : Promise.resolve(null),
     ]);
