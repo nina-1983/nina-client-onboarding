@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export default function ClientOnboarding() {
   const [data, setData] = useState({
@@ -15,6 +15,7 @@ export default function ClientOnboarding() {
 
   const [status, setStatus] = useState("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const canvasRef = useRef(null);
 
   function update(field, value) {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -35,6 +36,7 @@ export default function ClientOnboarding() {
       if (res.ok) {
         setStatus("success");
         setData({ name: "", email: "", phone: "", company: "", address: "", postcode: "", notes: "" });
+        launchConfetti(canvasRef.current);
       } else {
         setStatus("error");
         setErrorMessage("Something went wrong. Please try again.");
@@ -51,14 +53,14 @@ export default function ClientOnboarding() {
 
   return (
     <main style={s.page}>
-      {/* Nav */}
+      <canvas ref={canvasRef} style={s.canvas} />
+
       <nav style={s.nav}>
         <span style={s.navLogo}>Nina Mistry <span style={s.navRole}>| Launch Architect</span></span>
         <a href="https://nina-mistry.com" style={s.navBack}>← Back to site</a>
       </nav>
 
       <div style={s.container}>
-        {/* Header */}
         <header style={s.header}>
           <p style={s.tag}>New client onboarding</p>
           <h1 style={s.h1}>
@@ -66,11 +68,10 @@ export default function ClientOnboarding() {
             <em style={s.h1Em}>started.</em>
           </h1>
           <p style={s.sub}>
-            Fill in your details below and I'll be in touch within 24 hours to get things moving.
+            Fill in your details below and I'll be in touch soon to get things moving.
           </p>
         </header>
 
-        {/* Form card */}
         <div style={s.card}>
           <div style={s.cardAccent} />
 
@@ -126,11 +127,15 @@ export default function ClientOnboarding() {
               </div>
             </form>
           ) : (
-            <div style={s.success}>
-              <div style={s.successDot} />
-              <h2 style={s.successTitle}>You're in.</h2>
-              <p style={s.successMsg}>
-                I've got everything I need. Expect to hear from me within 24 hours — can't wait to see what we build together.
+            <div style={s.success} className="success-enter">
+              <div style={s.successCircle} className="success-pop">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <path d="M6 16l7 7L26 9" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="success-check" />
+                </svg>
+              </div>
+              <h2 style={s.successTitle} className="success-fade">You're in.</h2>
+              <p style={s.successMsg} className="success-fade-delay">
+                I've got everything I need. I'll be in touch soon — can't wait to see what we build together.
               </p>
             </div>
           )}
@@ -140,6 +145,58 @@ export default function ClientOnboarding() {
       <style>{css}</style>
     </main>
   );
+}
+
+function launchConfetti(canvas) {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const colours = ["#85d0cd", "#326ab3", "#6783c2", "#f4c82c", "#f9d8da", "#1c2b3a"];
+  const pieces = Array.from({ length: 140 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    w: Math.random() * 10 + 6,
+    h: Math.random() * 5 + 3,
+    colour: colours[Math.floor(Math.random() * colours.length)],
+    rot: Math.random() * Math.PI * 2,
+    vx: (Math.random() - 0.5) * 3,
+    vy: Math.random() * 4 + 2,
+    vr: (Math.random() - 0.5) * 0.15,
+  }));
+
+  let frame;
+  let start = null;
+  const duration = 3500;
+
+  function draw(ts) {
+    if (!start) start = ts;
+    const elapsed = ts - start;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    pieces.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.colour;
+      ctx.globalAlpha = Math.max(0, 1 - elapsed / duration);
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+
+    if (elapsed < duration) {
+      frame = requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  frame = requestAnimationFrame(draw);
+  setTimeout(() => cancelAnimationFrame(frame), duration + 100);
 }
 
 function Section({ title, children }) {
@@ -164,6 +221,15 @@ const s = {
   page: {
     minHeight: "100vh",
     background: "var(--off-white)",
+  },
+  canvas: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    pointerEvents: "none",
+    zIndex: 100,
   },
   nav: {
     display: "flex",
@@ -355,16 +421,19 @@ const s = {
     padding: "48px 0 24px",
     textAlign: "center",
   },
-  successDot: {
-    width: "56px",
-    height: "56px",
+  successCircle: {
+    width: "72px",
+    height: "72px",
     borderRadius: "50%",
-    background: "var(--teal)",
-    margin: "0 auto 24px",
+    background: "linear-gradient(135deg, var(--teal), var(--blue))",
+    margin: "0 auto 28px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   successTitle: {
     fontFamily: "var(--font-bodoni), 'Bodoni Moda', Georgia, serif",
-    fontSize: "40px",
+    fontSize: "44px",
     fontStyle: "italic",
     fontWeight: 400,
     color: "var(--dark)",
@@ -385,14 +454,14 @@ const css = `
     box-shadow: 0 0 0 3px rgba(133,208,205,0.2) !important;
   }
 
-  .btn-primary:hover:not(:disabled), button[type="submit"]:hover:not(:disabled) {
+  button[type="submit"]:hover:not(:disabled) {
     background: #2558a0 !important;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
   }
 
   button[type="reset"]:hover {
     background: rgba(50,106,179,0.06) !important;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
   }
 
   button:disabled {
@@ -400,7 +469,45 @@ const css = `
     cursor: not-allowed;
   }
 
+  @keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes drawCheck {
+    from { stroke-dashoffset: 40; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  .success-pop {
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .success-check {
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: drawCheck 0.4s ease 0.4s forwards;
+  }
+
+  .success-fade {
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.3s forwards;
+  }
+
+  .success-fade-delay {
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.5s forwards;
+  }
+
   @media (max-width: 560px) {
-    .twoCol { grid-template-columns: 1fr !important; }
+    div[style*="gridTemplateColumns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
   }
 `;
