@@ -29,508 +29,378 @@ export default function ClientOnboarding() {
       const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          submittedAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify({ ...data, submittedAt: new Date().toISOString() }),
       });
 
       if (res.ok) {
         setStatus("success");
-        setData({
-          name: "",
-          email: "",
-          phone: "",
-          company: "",
-          address: "",
-          postcode: "",
-          notes: "",
-        });
+        setData({ name: "", email: "", phone: "", company: "", address: "", postcode: "", notes: "" });
       } else {
         setStatus("error");
         setErrorMessage("Something went wrong. Please try again.");
       }
-    } catch (error) {
+    } catch {
       setStatus("error");
       setErrorMessage("Something went wrong. Please try again.");
-      console.error(error);
     }
   }
 
   function handleReset() {
-    setData({
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      address: "",
-      postcode: "",
-      notes: "",
-    });
+    setData({ name: "", email: "", phone: "", company: "", address: "", postcode: "", notes: "" });
   }
 
   return (
-    <section style={styles.section}>
-      {/* Animated Background Blobs */}
-      <div style={styles.blobsContainer}>
-        <div style={styles.blob1}></div>
-        <div style={styles.blob2}></div>
-        <div style={styles.blob3}></div>
-      </div>
+    <main style={s.page}>
+      {/* Nav */}
+      <nav style={s.nav}>
+        <span style={s.navLogo}>Nina Mistry <span style={s.navRole}>| Launch Architect</span></span>
+        <a href="https://nina-mistry.com" style={s.navBack}>← Back to site</a>
+      </nav>
 
-      {/* Content Container */}
-      <div style={styles.container}>
+      <div style={s.container}>
         {/* Header */}
-        <div style={styles.header}>
-          <h1 style={styles.h1}>
-            Hi, I'm <span style={styles.gradient}>Nina</span>
+        <header style={s.header}>
+          <p style={s.tag}>New client onboarding</p>
+          <h1 style={s.h1}>
+            Let's get<br />
+            <em style={s.h1Em}>started.</em>
           </h1>
-          <p style={styles.subtitle}>
-            I help established coaches and founders build the systems and
-            automation that let them scale without burning out.
+          <p style={s.sub}>
+            Fill in your details below and I'll be in touch within 24 hours to get things moving.
           </p>
-          <p style={styles.subtitle}>
-            Whether it's membership platforms, email funnels, or operational
-            infrastructure, we'll build something that actually works for your
-            business.
-          </p>
-        </div>
+        </header>
 
-        {/* Form Wrapper */}
-        <div style={styles.formWrapper}>
-          <div style={styles.topBorder}></div>
+        {/* Form card */}
+        <div style={s.card}>
+          <div style={s.cardAccent} />
 
-          {errorMessage && <div style={styles.errorBox}>{errorMessage}</div>}
+          {errorMessage && <div style={s.errorBox}>{errorMessage}</div>}
 
-          {status !== "success" && (
+          {status !== "success" ? (
             <form onSubmit={handleSubmit}>
-              {/* Your Details */}
-              <div style={styles.formSection}>
-                <h2 style={styles.sectionTitle}>Your details</h2>
+              <Section title="Your details">
+                <Field label="Full name">
+                  <input type="text" value={data.name} onChange={e => update("name", e.target.value)}
+                    required placeholder="Alex Johnson" style={s.input} />
+                </Field>
+                <Field label="Email address">
+                  <input type="email" value={data.email} onChange={e => update("email", e.target.value)}
+                    required placeholder="hello@yourbusiness.com" style={s.input} />
+                </Field>
+                <Field label="Contact number">
+                  <input type="tel" value={data.phone} onChange={e => update("phone", e.target.value)}
+                    required placeholder="07700 900000" style={s.input} />
+                </Field>
+              </Section>
 
-                <div style={styles.formGroup}>
-                  <label htmlFor="name" style={styles.label}>
-                    Full name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={data.name}
-                    onChange={(e) => update("name", e.target.value)}
-                    required
-                    placeholder="e.g. Alex Johnson"
-                    style={styles.input}
-                  />
+              <Section title="Business details">
+                <Field label="Company name">
+                  <input type="text" value={data.company} onChange={e => update("company", e.target.value)}
+                    required placeholder="Your Business Ltd" style={s.input} />
+                </Field>
+                <div style={s.twoCol}>
+                  <Field label="Address line 1">
+                    <input type="text" value={data.address} onChange={e => update("address", e.target.value)}
+                      required placeholder="123 Main Street" style={s.input} />
+                  </Field>
+                  <Field label="Postcode">
+                    <input type="text" value={data.postcode} onChange={e => update("postcode", e.target.value)}
+                      required placeholder="SW1A 1AA" style={s.input} />
+                  </Field>
                 </div>
+              </Section>
 
-                <div style={styles.formGroup}>
-                  <label htmlFor="email" style={styles.label}>
-                    Email address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={data.email}
-                    onChange={(e) => update("email", e.target.value)}
-                    required
-                    placeholder="hello@business.co.uk"
-                    style={styles.input}
-                  />
-                </div>
+              <Section title="Tell me more">
+                <Field label="What's your project about?">
+                  <textarea value={data.notes} onChange={e => update("notes", e.target.value)}
+                    required placeholder="Tell me about your vision, goals, or specific challenges. The more you share, the better I can help."
+                    style={s.textarea} />
+                </Field>
+              </Section>
 
-                <div style={styles.formGroup}>
-                  <label htmlFor="phone" style={styles.label}>
-                    Contact number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={data.phone}
-                    onChange={(e) => update("phone", e.target.value)}
-                    required
-                    placeholder="07700 900000"
-                    style={styles.input}
-                  />
-                </div>
-              </div>
-
-              {/* Business Details */}
-              <div style={styles.formSection}>
-                <h2 style={styles.sectionTitle}>Business details</h2>
-
-                <div style={styles.formGroup}>
-                  <label htmlFor="company" style={styles.label}>
-                    Company name
-                  </label>
-                  <input
-                    type="text"
-                    id="company"
-                    value={data.company}
-                    onChange={(e) => update("company", e.target.value)}
-                    required
-                    placeholder="Your Business Ltd"
-                    style={styles.input}
-                  />
-                </div>
-
-                <div style={styles.twoColumn}>
-                  <div style={styles.formGroup}>
-                    <label htmlFor="address" style={styles.label}>
-                      Address line 1
-                    </label>
-                    <input
-                      type="text"
-                      id="address"
-                      value={data.address}
-                      onChange={(e) => update("address", e.target.value)}
-                      required
-                      placeholder="123 Main Street"
-                      style={styles.input}
-                    />
-                  </div>
-
-                  <div style={styles.formGroup}>
-                    <label htmlFor="postcode" style={styles.label}>
-                      Postcode
-                    </label>
-                    <input
-                      type="text"
-                      id="postcode"
-                      value={data.postcode}
-                      onChange={(e) => update("postcode", e.target.value)}
-                      required
-                      placeholder="SW1A 1AA"
-                      style={styles.input}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Project Details */}
-              <div style={styles.formSection}>
-                <h2 style={styles.sectionTitle}>Tell us more</h2>
-
-                <div style={styles.formGroup}>
-                  <label htmlFor="notes" style={styles.label}>
-                    What's your project about?
-                  </label>
-                  <textarea
-                    id="notes"
-                    value={data.notes}
-                    onChange={(e) => update("notes", e.target.value)}
-                    required
-                    placeholder="Tell me about your vision, goals, or specific challenges. The more you share, the better I can help."
-                    style={styles.textarea}
-                  ></textarea>
-                </div>
-              </div>
-
-              {/* Form Footer */}
-              <div style={styles.formFooter}>
-                <button
-                  type="submit"
-                  disabled={status === "loading"}
-                  style={styles.submitButton}
-                >
-                  {status === "loading" ? "Submitting..." : "Let's build together"}
+              <div style={s.footer}>
+                <button type="submit" disabled={status === "loading"} style={s.btnPrimary}>
+                  {status === "loading" ? "Sending…" : "Let's build together"}
                 </button>
-                <button
-                  type="reset"
-                  onClick={handleReset}
-                  style={styles.resetButton}
-                >
-                  Clear
-                </button>
+                <button type="reset" onClick={handleReset} style={s.btnOutline}>Clear</button>
               </div>
             </form>
-          )}
-
-          {status === "success" && (
-            <div style={styles.successState}>
-              <div style={styles.successIcon}>✨</div>
-              <h3 style={styles.successTitle}>You're in, lovely!</h3>
-              <p style={styles.successMessage}>
-                I've got all the details and will be in touch within 24 hours.
-                Can't wait to see what we build together.
+          ) : (
+            <div style={s.success}>
+              <div style={s.successDot} />
+              <h2 style={s.successTitle}>You're in.</h2>
+              <p style={s.successMsg}>
+                I've got everything I need. Expect to hear from me within 24 hours — can't wait to see what we build together.
               </p>
             </div>
           )}
         </div>
       </div>
 
-      <style>{keyframes}</style>
-    </section>
+      <style>{css}</style>
+    </main>
   );
 }
 
-const styles = {
-  section: {
-    background:
-      "linear-gradient(180deg, #faf8f5 0%, #f5f0eb 50%, #fff9f3 100%)",
-    padding: "3rem 1.5rem",
-    position: "relative",
-    overflow: "hidden",
+function Section({ title, children }) {
+  return (
+    <div style={s.section}>
+      <h2 style={s.sectionTitle}>{title}</h2>
+      {children}
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <div style={s.field}>
+      <label style={s.label}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+const s = {
+  page: {
     minHeight: "100vh",
+    background: "var(--off-white)",
   },
-  blobsContainer: {
-    position: "fixed",
+  nav: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "20px 40px",
+    background: "rgba(250,250,249,0.92)",
+    borderBottom: "1px solid rgba(133,208,205,0.25)",
+    backdropFilter: "blur(8px)",
+    position: "sticky",
     top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    pointerEvents: "none",
-    zIndex: 0,
+    zIndex: 10,
   },
-  blob1: {
-    position: "absolute",
-    width: "320px",
-    height: "320px",
-    background: "radial-gradient(circle at 30% 30%, #e8304f, #f9d8da)",
-    borderRadius: "45% 55% 60% 40% / 55% 45% 40% 60%",
-    top: "-120px",
-    right: "-80px",
-    opacity: 0.25,
-    mixBlendMode: "multiply",
-    animation: "float 15s infinite ease-in-out",
+  navLogo: {
+    fontSize: "13px",
+    fontWeight: 600,
+    color: "var(--dark)",
+    letterSpacing: "0.5px",
+    textTransform: "uppercase",
   },
-  blob2: {
-    position: "absolute",
-    width: "280px",
-    height: "280px",
-    background: "radial-gradient(circle at 40% 40%, #85d0cd, #c8e6e3)",
-    borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
-    bottom: "5%",
-    left: "-100px",
-    opacity: 0.25,
-    mixBlendMode: "multiply",
-    animation: "float 20s infinite ease-in-out 2s",
+  navRole: {
+    fontWeight: 400,
+    color: "var(--mid)",
   },
-  blob3: {
-    position: "absolute",
-    width: "240px",
-    height: "240px",
-    background: "radial-gradient(circle at 50% 50%, #6783c2, #b5d4f4)",
-    borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
-    top: "40%",
-    right: "3%",
-    opacity: 0.25,
-    mixBlendMode: "multiply",
-    animation: "float 18s infinite ease-in-out 1s",
+  navBack: {
+    fontSize: "13px",
+    color: "var(--blue)",
+    textDecoration: "none",
+    fontWeight: 500,
   },
   container: {
-    maxWidth: "720px",
+    maxWidth: "680px",
     margin: "0 auto",
-    position: "relative",
-    zIndex: 1,
+    padding: "60px 24px 80px",
   },
   header: {
-    textAlign: "center",
-    marginBottom: "3rem",
+    marginBottom: "48px",
+  },
+  tag: {
+    fontSize: "11px",
+    fontWeight: 600,
+    letterSpacing: "1.5px",
+    textTransform: "uppercase",
+    color: "var(--teal)",
+    marginBottom: "16px",
+    borderLeft: "2px solid var(--teal)",
+    paddingLeft: "12px",
   },
   h1: {
-    fontSize: "48px",
+    fontFamily: "var(--font-bodoni), 'Bodoni Moda', Georgia, serif",
+    fontSize: "clamp(48px, 8vw, 72px)",
     fontWeight: 700,
-    lineHeight: 1.15,
+    lineHeight: 1.05,
+    color: "var(--dark)",
     marginBottom: "20px",
-    color: "#2c2c2a",
   },
-  gradient: {
-    background:
-      "linear-gradient(135deg, #e8304f 0%, #85d0cd 50%, #6783c2 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
+  h1Em: {
+    fontStyle: "italic",
+    fontWeight: 400,
+    color: "var(--blue)",
   },
-  subtitle: {
+  sub: {
     fontSize: "16px",
-    color: "#666",
+    color: "var(--mid)",
     lineHeight: 1.7,
-    marginBottom: "12px",
+    maxWidth: "480px",
   },
-  formWrapper: {
-    background: "white",
-    borderRadius: "24px",
-    padding: "3.5rem",
-    boxShadow: "0 25px 70px rgba(0, 0, 0, 0.09)",
-    border: "1px solid rgba(232, 48, 79, 0.08)",
+  card: {
+    background: "var(--white)",
+    borderRadius: "8px",
+    padding: "48px",
+    boxShadow: "0 4px 24px rgba(28,43,58,0.07)",
+    border: "1px solid rgba(133,208,205,0.2)",
     position: "relative",
     overflow: "hidden",
   },
-  topBorder: {
+  cardAccent: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: "5px",
-    background:
-      "linear-gradient(90deg, #e8304f 0%, #85d0cd 50%, #6783c2 100%)",
+    height: "4px",
+    background: "linear-gradient(90deg, var(--teal) 0%, var(--blue) 50%, var(--periwinkle) 100%)",
   },
   errorBox: {
     padding: "14px 16px",
-    background: "linear-gradient(135deg, #fff4f5 0%, #ffe8eb 100%)",
-    border: "2px solid #e8304f",
-    borderRadius: "12px",
+    background: "#fff4f5",
+    border: "1.5px solid var(--blush)",
+    borderRadius: "6px",
     fontSize: "14px",
-    color: "#e8304f",
-    marginBottom: "1.5rem",
-    fontWeight: 600,
+    color: "#c0392b",
+    marginBottom: "32px",
   },
-  formSection: {
-    marginBottom: "2.5rem",
+  section: {
+    marginBottom: "40px",
   },
   sectionTitle: {
-    fontSize: "16px",
-    fontWeight: 700,
-    color: "#2c2c2a",
-    marginBottom: "1.5rem",
+    fontSize: "11px",
+    fontWeight: 600,
+    letterSpacing: "1.5px",
+    textTransform: "uppercase",
+    color: "var(--mid)",
+    marginBottom: "24px",
+    paddingBottom: "12px",
+    borderBottom: "1px solid rgba(133,208,205,0.3)",
   },
-  formGroup: {
-    marginBottom: "1.5rem",
+  field: {
+    marginBottom: "20px",
   },
   label: {
     display: "block",
-    fontSize: "13px",
-    fontWeight: 700,
-    color: "#2c2c2a",
+    fontSize: "12px",
+    fontWeight: 600,
+    color: "var(--dark)",
     marginBottom: "8px",
+    letterSpacing: "0.5px",
     textTransform: "uppercase",
-    letterSpacing: "0.8px",
   },
   input: {
     width: "100%",
-    padding: "13px 16px",
-    border: "2px solid #e8e8e8",
-    borderRadius: "12px",
+    padding: "12px 14px",
+    border: "1.5px solid #dde3ea",
+    borderRadius: "6px",
     fontSize: "15px",
-    color: "#2c2c2a",
-    background: "#fafafa",
-    transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-    boxSizing: "border-box",
+    color: "var(--dark)",
+    background: "var(--white)",
     fontFamily: "inherit",
+    boxSizing: "border-box",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    outline: "none",
   },
   textarea: {
     width: "100%",
-    padding: "13px 16px",
-    border: "2px solid #e8e8e8",
-    borderRadius: "12px",
+    padding: "12px 14px",
+    border: "1.5px solid #dde3ea",
+    borderRadius: "6px",
     fontSize: "15px",
-    color: "#2c2c2a",
-    background: "#fafafa",
-    transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-    minHeight: "110px",
+    color: "var(--dark)",
+    background: "var(--white)",
+    fontFamily: "inherit",
+    minHeight: "120px",
     resize: "vertical",
     boxSizing: "border-box",
-    fontFamily: "inherit",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    outline: "none",
   },
-  twoColumn: {
+  twoCol: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "1.5rem",
+    gap: "16px",
   },
-  formFooter: {
-    marginTop: "2.5rem",
-    paddingTop: "2rem",
-    borderTop: "2px solid #f0f0f0",
+  footer: {
     display: "flex",
     gap: "12px",
+    paddingTop: "32px",
+    borderTop: "1px solid var(--off-white)",
+    marginTop: "8px",
   },
-  submitButton: {
-    padding: "14px 28px",
-    borderRadius: "12px",
-    fontSize: "14px",
-    fontWeight: 700,
-    border: "none",
-    cursor: "pointer",
-    textTransform: "uppercase",
-    letterSpacing: "0.8px",
-    background: "linear-gradient(135deg, rgba(232, 48, 79, 0.9) 0%, rgba(133, 208, 205, 0.9) 100%)",
-    color: "white",
+  btnPrimary: {
     flex: 1,
-    boxShadow: "0 10px 25px rgba(232, 48, 79, 0.2)",
-    transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-  },
-  resetButton: {
-    padding: "14px 28px",
-    borderRadius: "12px",
-    fontSize: "14px",
-    fontWeight: 700,
-    border: "2px solid rgba(232, 48, 79, 0.3)",
-    cursor: "pointer",
-    textTransform: "uppercase",
-    letterSpacing: "0.8px",
-    background: "rgba(232, 48, 79, 0.05)",
-    color: "#2c2c2a",
-    transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-    fontWeight: 600,
-  },
-  successState: {
-    textAlign: "center",
-    padding: "2rem 0",
-  },
-  successIcon: {
-    width: "90px",
-    height: "90px",
-    margin: "0 auto 1.5rem",
-    borderRadius: "50%",
-    background:
-      "linear-gradient(135deg, #e8304f 0%, #85d0cd 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    padding: "15px 32px",
+    background: "var(--blue)",
     color: "white",
-    fontSize: "48px",
-    boxShadow: "0 15px 40px rgba(232, 48, 79, 0.35)",
-    animation: "popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    border: "none",
+    borderRadius: "6px",
+    fontSize: "13px",
+    fontWeight: 600,
+    letterSpacing: "0.8px",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    transition: "background 0.2s, transform 0.2s",
+  },
+  btnOutline: {
+    padding: "15px 28px",
+    background: "transparent",
+    color: "var(--blue)",
+    border: "1.5px solid var(--blue)",
+    borderRadius: "6px",
+    fontSize: "13px",
+    fontWeight: 600,
+    letterSpacing: "0.8px",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    transition: "background 0.2s, transform 0.2s",
+  },
+  success: {
+    padding: "48px 0 24px",
+    textAlign: "center",
+  },
+  successDot: {
+    width: "56px",
+    height: "56px",
+    borderRadius: "50%",
+    background: "var(--teal)",
+    margin: "0 auto 24px",
   },
   successTitle: {
-    fontSize: "26px",
-    fontWeight: 700,
-    color: "#2c2c2a",
-    marginBottom: "10px",
+    fontFamily: "var(--font-bodoni), 'Bodoni Moda', Georgia, serif",
+    fontSize: "40px",
+    fontStyle: "italic",
+    fontWeight: 400,
+    color: "var(--dark)",
+    marginBottom: "12px",
   },
-  successMessage: {
+  successMsg: {
     fontSize: "15px",
-    color: "#666",
+    color: "var(--mid)",
     lineHeight: 1.7,
+    maxWidth: "400px",
+    margin: "0 auto",
   },
 };
 
-const keyframes = `
-  @keyframes float {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    25% { transform: translate(35px, -35px) rotate(90deg); }
-    50% { transform: translate(0, 35px) rotate(180deg); }
-    75% { transform: translate(-35px, -25px) rotate(270deg); }
-  }
-
-  @keyframes popIn {
-    0% {
-      transform: scale(0);
-      opacity: 0;
-    }
-    50% {
-      transform: scale(1.15);
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
+const css = `
   input:focus, textarea:focus {
-    outline: none;
-    border-color: #e8304f !important;
-    background: white !important;
-    box-shadow: 0 0 0 5px rgba(232, 48, 79, 0.12) !important;
-    transform: translateY(-2px) !important;
+    border-color: var(--teal) !important;
+    box-shadow: 0 0 0 3px rgba(133,208,205,0.2) !important;
   }
 
-  button:hover:not(:disabled) {
-    transform: translateY(-4px);
+  .btn-primary:hover:not(:disabled), button[type="submit"]:hover:not(:disabled) {
+    background: #2558a0 !important;
+    transform: translateY(-1px);
+  }
+
+  button[type="reset"]:hover {
+    background: rgba(50,106,179,0.06) !important;
+    transform: translateY(-1px);
   }
 
   button:disabled {
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 560px) {
+    .twoCol { grid-template-columns: 1fr !important; }
   }
 `;
