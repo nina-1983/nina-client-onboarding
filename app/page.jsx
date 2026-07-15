@@ -220,8 +220,119 @@ function Field({ label, children }) {
 }
 
 const s = {
-  page: {
-    minHeight: "100vh",
-    background: "var(--off-white)",
-  },
-  canvas: {
+  page: { minHeight: "100vh", background: "var(--off-white)" },
+  canvas: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 100 },
+  nav: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 40px", background: "rgba(250,250,249,0.92)", borderBottom: "1px solid rgba(133,208,205,0.25)", backdropFilter: "blur(8px)", position: "sticky", top: 0, zIndex: 10 },
+  navLogo: { fontSize: "13px", fontWeight: 600, color: "var(--dark)", letterSpacing: "0.5px", textTransform: "uppercase" },
+  navRole: { fontWeight: 400, color: "var(--mid)" },
+  navBack: { fontSize: "13px", color: "var(--blue)", textDecoration: "none", fontWeight: 500 },
+  container: { maxWidth: "680px", margin: "0 auto", padding: "60px 24px 80px" },
+  header: { marginBottom: "48px" },
+  tag: { fontSize: "11px", fontWeight: 600, letterSpacing: "1.5px", textTransform: "uppercase", color: "var(--teal)", marginBottom: "16px", borderLeft: "2px solid var(--teal)", paddingLeft: "12px" },
+  h1: { fontFamily: "var(--font-bodoni), 'Bodoni Moda', Georgia, serif", fontSize: "clamp(48px, 8vw, 72px)", fontWeight: 700, lineHeight: 1.05, color: "var(--dark)", marginBottom: "20px" },
+  h1Em: { fontStyle: "italic", fontWeight: 400, color: "var(--blue)" },
+  sub: { fontSize: "16px", color: "var(--mid)", lineHeight: 1.7, maxWidth: "480px" },
+  card: { background: "var(--white)", borderRadius: "8px", padding: "48px", boxShadow: "0 4px 24px rgba(28,43,58,0.07)", border: "1px solid rgba(133,208,205,0.2)", position: "relative", overflow: "hidden" },
+  cardAccent: { position: "absolute", top: 0, left: 0, right: 0, height: "4px", background: "linear-gradient(90deg, var(--teal) 0%, var(--blue) 50%, var(--periwinkle) 100%)" },
+  errorBox: { padding: "14px 16px", background: "#fff4f5", border: "1.5px solid var(--blush)", borderRadius: "6px", fontSize: "14px", color: "#c0392b", marginBottom: "32px" },
+  section: { marginBottom: "40px" },
+  sectionTitle: { fontSize: "11px", fontWeight: 600, letterSpacing: "1.5px", textTransform: "uppercase", color: "var(--mid)", marginBottom: "24px", paddingBottom: "12px", borderBottom: "1px solid rgba(133,208,205,0.3)" },
+  field: { marginBottom: "20px" },
+  label: { display: "block", fontSize: "12px", fontWeight: 600, color: "var(--dark)", marginBottom: "8px", letterSpacing: "0.5px", textTransform: "uppercase" },
+  input: { width: "100%", padding: "12px 14px", border: "1.5px solid #dde3ea", borderRadius: "6px", fontSize: "15px", color: "var(--dark)", background: "var(--white)", fontFamily: "inherit", boxSizing: "border-box", transition: "border-color 0.2s, box-shadow 0.2s", outline: "none" },
+  textarea: { width: "100%", padding: "12px 14px", border: "1.5px solid #dde3ea", borderRadius: "6px", fontSize: "15px", color: "var(--dark)", background: "var(--white)", fontFamily: "inherit", minHeight: "120px", resize: "vertical", boxSizing: "border-box", transition: "border-color 0.2s, box-shadow 0.2s", outline: "none" },
+  twoCol: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" },
+  footer: { display: "flex", gap: "12px", paddingTop: "32px", borderTop: "1px solid var(--off-white)", marginTop: "8px" },
+  btnPrimary: { flex: 1, padding: "15px 32px", background: "var(--blue)", color: "white", border: "none", borderRadius: "6px", fontSize: "13px", fontWeight: 600, letterSpacing: "0.8px", textTransform: "uppercase", cursor: "pointer", fontFamily: "inherit", transition: "background 0.2s, transform 0.2s" },
+  btnOutline: { padding: "15px 28px", background: "transparent", color: "var(--blue)", border: "1.5px solid var(--blue)", borderRadius: "6px", fontSize: "13px", fontWeight: 600, letterSpacing: "0.8px", textTransform: "uppercase", cursor: "pointer", fontFamily: "inherit", transition: "background 0.2s, transform 0.2s" },
+  success: { padding: "48px 0 24px", textAlign: "center" },
+  successCircle: { width: "72px", height: "72px", borderRadius: "50%", background: "linear-gradient(135deg, var(--teal), var(--blue))", margin: "0 auto 28px", display: "flex", alignItems: "center", justifyContent: "center" },
+  successTitle: { fontFamily: "var(--font-bodoni), 'Bodoni Moda', Georgia, serif", fontSize: "44px", fontStyle: "italic", fontWeight: 400, color: "var(--dark)", marginBottom: "12px" },
+  successMsg: { fontSize: "15px", color: "var(--mid)", lineHeight: 1.7, maxWidth: "400px", margin: "0 auto" },
+};
+
+const css = `
+  :root {
+    --teal: #85d0cd;
+    --blue: #326ab3;
+    --periwinkle: #6783c2;
+    --yellow: #f4c82c;
+    --blush: #f9d8da;
+    --dark: #1c2b3a;
+    --mid: #4a5568;
+    --white: #fafaf9;
+    --off-white: #f5f4f2;
+    --font-bodoni: 'Bodoni Moda', Georgia, serif;
+  }
+
+  input:focus, textarea:focus {
+    border-color: var(--teal) !important;
+    box-shadow: 0 0 0 3px rgba(133,208,205,0.2) !important;
+  }
+
+  button[type="submit"]:hover:not(:disabled) {
+    background: #2558a0 !important;
+    transform: translateY(-2px);
+  }
+
+  button[type="reset"]:hover {
+    background: rgba(50,106,179,0.06) !important;
+    transform: translateY(-2px);
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes drawCheck {
+    from { stroke-dashoffset: 40; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  .success-pop {
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .success-check {
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: drawCheck 0.4s ease 0.4s forwards;
+  }
+
+  .success-fade {
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.3s forwards;
+  }
+
+  .success-fade-delay {
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.5s forwards;
+  }
+
+  @media (max-width: 600px) {
+    .two-col {
+      grid-template-columns: 1fr !important;
+    }
+    .form-card {
+      padding: 28px 20px !important;
+    }
+    nav {
+      padding: 16px 20px !important;
+    }
+    nav span, nav a {
+      font-size: 11px !important;
+    }
+  }
+`;
