@@ -15,7 +15,6 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    // Save to Notion
     const properties = {
       Clients: title(body.name || "Untitled"),
       Email: rich(body.email || ""),
@@ -32,20 +31,28 @@ export async function POST(request) {
       properties,
     });
 
-    // Send email
-    await resend.emails.send({
-      from: "onboarding@nina-mistry.com",
-      to: "nina@nina-mistry.com",
-      subject: `New onboarding submission from ${body.name}`,
-      html: `
-        <h2>New Client Submission</h2>
-        <p><strong>Name:</strong> ${body.name}</p>
-        <p><strong>Email:</strong> ${body.email}</p>
-        <p><strong>Phone:</strong> ${body.phone}</p>
-        <p><strong>Company:</strong> ${body.company}</p>
-        <p><strong>Project:</strong> ${body.notes}</p>
-      `,
-    });
+    // Try to send email, but don't fail if it doesn't work
+    try {
+      if (process.env.RESEND_API_KEY && process.env.NOTIFICATION_EMAIL) {
+        await resend.emails.send({
+          from: "onboarding@nina-mistry.com",
+          to: process.env.NOTIFICATION_EMAIL,
+          subject: `New onboarding submission from ${body.name}`,
+          html: `
+            <h2>New Client Submission</h2>
+            <p><strong>Name:</strong> ${body.name}</p>
+            <p><strong>Email:</strong> ${body.email}</p>
+            <p><strong>Phone:</strong> ${body.phone}</p>
+            <p><strong>Company:</strong> ${body.company}</p>
+            <p><strong>Address:</strong> ${body.address}</p>
+            <p><strong>Postcode:</strong> ${body.postcode}</p>
+            <p><strong>Project Details:</strong> ${body.notes}</p>
+          `,
+        });
+      }
+    } catch (emailError) {
+      console.error("Email send failed (but Notion save succeeded):", emailError);
+    }
 
     return NextResponse.json({
       ok: true,
