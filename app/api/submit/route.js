@@ -31,34 +31,21 @@ export async function POST(request) {
       properties,
     });
 
-    // Try to send email, but don't fail if it doesn't work
+    // Try to send email
     try {
       if (process.env.RESEND_API_KEY && process.env.NOTIFICATION_EMAIL) {
         await resend.emails.send({
-          from: "onboarding@nina-mistry.com",
+          from: "noreply@resend.dev",
           to: process.env.NOTIFICATION_EMAIL,
           subject: `New onboarding submission from ${body.name}`,
-          html: `
-            <h2>New Client Submission</h2>
-            <p><strong>Name:</strong> ${body.name}</p>
-            <p><strong>Email:</strong> ${body.email}</p>
-            <p><strong>Phone:</strong> ${body.phone}</p>
-            <p><strong>Company:</strong> ${body.company}</p>
-            <p><strong>Address:</strong> ${body.address}</p>
-            <p><strong>Postcode:</strong> ${body.postcode}</p>
-            <p><strong>Project Details:</strong> ${body.notes}</p>
-          `,
+          html: `<h2>New Submission from ${body.name}</h2><p>Email: ${body.email}</p><p>Phone: ${body.phone}</p><p>Company: ${body.company}</p><p>Notes: ${body.notes}</p>`,
         });
       }
     } catch (emailError) {
-      console.error("Email send failed (but Notion save succeeded):", emailError);
+      console.log("Email failed, but Notion saved:", emailError);
     }
 
-    return NextResponse.json({
-      ok: true,
-      id: page.id,
-      url: page.url,
-    });
+    return NextResponse.json({ ok: true, id: page.id });
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json(
