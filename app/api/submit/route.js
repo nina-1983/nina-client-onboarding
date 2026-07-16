@@ -1,141 +1,62 @@
 import { NextResponse } from "next/server";
-import { google } from "googleapis";
-import { notion, DB_ID, title, rich, email, dateProp } from "@/lib/notion";
+import { notion, DB_ID, title, rich, dateProp } from "@/lib/notion";
+import { Resend } from "resend";
 
-const ALLOWED_ORIGINS = [
-  "https://nina-mistry.com",
-  "https://www.nina-mistry.com",
-  "https://nina-client-onboarding.vercel.app",
-];
-
-function corsHeaders(origin) {
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[2];
-  return {
-    "Access-Control-Allow-Origin": allowed,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-}
-
-export async function OPTIONS(request) {
-  const origin = request.headers.get("origin") || "";
-  return new NextResponse(null, { status: 204, headers: corsHeaders(origin) });
-}
-
-function phone(value) {
-  return { phone_number: value || null };
-}
-
-async function createContract(data) {
-  const auth = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET
-  );
-  auth.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
-
-  const drive = google.drive({ version: "v3", auth });
-  const docs = google.docs({ version: "v1", auth });
-
-  const templateMap = {
-    "Retainer":   "1dvPMbytG955PqPn2_FDaBqr84zTikXCimAFnchGmGks",
-    "Activation": "1UNqJbf5CrICMrDjivHyDcIlfEapOa6jeFBx1dQ9-yMs",
-    "Nurture":    "1eddQlmh79VzsIdcQdDCoFKJWSSaCK7tqGVc4_DwXNpI",
-    "Growth":     "1NCkNazSh4__LMfKjrikpgFQPsglNKjSpJYv4tqrQs6k",
-  };
-  const templateId = templateMap[data.package] || process.env.GOOGLE_DOC_TEMPLATE_ID;
-  const today = new Date().toLocaleDateString("en-GB", {
-    day: "numeric", month: "long", year: "numeric",
-  });
-
-  const copy = await drive.files.copy({
-    fileId: templateId,
-    requestBody: {
-      name: `Contract — ${data.name} (${today})`,
-      parents: ["1SHIFEI61p2njCNpgk4YytKYuFJ0PwFal"],
-    },
-  });
-
-  const docId = copy.data.id;
-
-  const replacements = [
-    ["{{client_name}}",    data.name      || ""],
-    ["{{client_email}}",   data.email     || ""],
-    ["{{client_phone}}",   data.phone     || ""],
-    ["{{client_company}}", data.company   || ""],
-    ["{{client_address}}", data.address   || ""],
-    ["{{client_postcode}}",data.postcode  || ""],
-    ["{{date}}",           today],
-  ];
-
-  await docs.documents.batchUpdate({
-    documentId: docId,
-    requestBody: {
-      requests: replacements.map(([find, replace]) => ({
-        replaceAllText: {
-          containsText: { text: find, matchCase: true },
-          replaceText: replace,
-        },
-      })),
-    },
-  });
-
-  // Share the new doc with Nina so it appears in her Drive
-  await drive.permissions.create({
-    fileId: docId,
-    requestBody: {
-      role: "writer",
-      type: "user",
-      emailAddress: "nina@nina-mistry.com",
-    },
-    sendNotificationEmail: false,
-  });
-
-  return `https://docs.google.com/document/d/${docId}/edit`;
-}
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request) {
-  const origin = request.headers.get("origin") || "";
-
   try {
     if (!process.env.NOTION_TOKEN || !DB_ID) {
       return NextResponse.json(
         { error: "Missing Notion configuration" },
-        { status: 500, headers: corsHeaders(origin) }
+        { status: 500 }
       );
     }
 
     const body = await request.json();
 
+    // Save to Notion
     const properties = {
       Clients: title(body.name || "Untitled"),
-      Email: email(body.email || ""),
-      Phone: phone(body.phone || ""),
+      Email: rich(body.email || ""),
+      Phone: rich(body.phone || ""),
       Company: rich(body.company || ""),
       Address: rich(body.address || ""),
       Postcode: rich(body.postcode || ""),
       Notes: rich(body.notes || ""),
+      "Date Submitted": dateProp(body.submittedAt),
     };
 
-    if (body.submittedAt) {
-      properties["Date Submitted"] = dateProp(body.submittedAt);
-    }
+    const page = await notion.pages.create({
+      parent: { database_id: DB_ID },
+      properties,
+    });
 
-    const [page, contractUrl] = await Promise.all([
-      notion.pages.create({ parent: { database_id: DB_ID }, properties }),
-      process.env.GOOGLE_CLIENT_ID && body.package && body.package !== "Other"
-        ? createContract(body)
-        : Promise.resolve(null),
-    ]);
+    // Send email
+    await resend.emails.send({
+      from: "onboarding@nina-mistry.com",
+      to: "nina@nina-mistry.com",
+      subject: `New onboarding submission from ${body.name}`,
+      html: `
+        <h2>New Client Submission</h2>
+        <p><strong>Name:</strong> ${body.name}</p>
+        <p><strong>Email:</strong> ${body.email}</p>
+        <p><strong>Phone:</strong> ${body.phone}</p>
+        <p><strong>Company:</strong> ${body.company}</p>
+        <p><strong>Project:</strong> ${body.notes}</p>
+      `,
+    });
 
-    return NextResponse.json(
-      { ok: true, id: page.id, contractUrl },
-      { headers: corsHeaders(origin) }
-    );
+    return NextResponse.json({
+      ok: true,
+      id: page.id,
+      url: page.url,
+    });
   } catch (error) {
-    console.error("Submit error:", error);
+    console.error("Error:", error);
     return NextResponse.json(
       { error: error.message || "Could not save submission" },
-      { status: 500, headers: corsHeaders(origin) }
+      { status: 500 }
     );
   }
 }
