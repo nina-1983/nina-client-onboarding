@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 
 export default function ClientOnboarding() {
   const [data, setData] = useState({
@@ -15,7 +15,6 @@ export default function ClientOnboarding() {
 
   const [status, setStatus] = useState("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const canvasRef = useRef(null);
 
   function update(field, value) {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -36,7 +35,7 @@ export default function ClientOnboarding() {
       if (res.ok) {
         setStatus("success");
         setData({ name: "", email: "", phone: "", company: "", address: "", postcode: "", notes: "" });
-        launchConfetti(canvasRef.current);
+        launchConfetti();
       } else {
         const errorData = await res.json();
         setStatus("error");
@@ -55,8 +54,6 @@ export default function ClientOnboarding() {
 
   return (
     <main style={s.page}>
-      <canvas ref={canvasRef} style={s.canvas} />
-
       <nav style={s.nav}>
         <span style={s.navLogo}>Nina Mistry <span style={s.navRole}>| Launch Architect</span></span>
         <a href="https://nina-mistry.com" style={s.navBack}>← Back to site</a>
@@ -149,56 +146,21 @@ export default function ClientOnboarding() {
   );
 }
 
-function launchConfetti(canvas) {
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  const colours = ["#85d0cd", "#326ab3", "#6783c2", "#f4c82c", "#f9d8da", "#1c2b3a"];
-  const pieces = Array.from({ length: 80 }, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * -canvas.height,
-    w: Math.random() * 8 + 4,
-    h: Math.random() * 4 + 2,
-    colour: colours[Math.floor(Math.random() * colours.length)],
-    rot: Math.random() * Math.PI * 2,
-    vx: (Math.random() - 0.5) * 2.5,
-    vy: Math.random() * 3.5 + 2,
-    vr: (Math.random() - 0.5) * 0.12,
-  }));
-
-  let frame;
-  let start = null;
-  const duration = 2500;
-
-  function draw(ts) {
-    if (!start) start = ts;
-    const elapsed = ts - start;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    pieces.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.rot += p.vr;
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      ctx.fillStyle = p.colour;
-      ctx.globalAlpha = Math.max(0, 1 - elapsed / duration);
-      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-      ctx.restore();
-    });
-
-    if (elapsed < duration) {
-      frame = requestAnimationFrame(draw);
-    } else {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+function launchConfetti() {
+  const emojis = ["🎉", "✨", "🚀"];
+  for (let i = 0; i < 30; i++) {
+    const conf = document.createElement("div");
+    conf.style.position = "fixed";
+    conf.style.pointerEvents = "none";
+    conf.style.zIndex = "9999";
+    conf.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+    conf.style.left = Math.random() * 100 + "%";
+    conf.style.top = "-30px";
+    conf.style.fontSize = Math.random() * 20 + 14 + "px";
+    conf.style.animation = `confettiFall ${1.5 + Math.random() * 1}s linear forwards`;
+    document.body.appendChild(conf);
+    setTimeout(() => conf.remove(), 2500);
   }
-
-  frame = requestAnimationFrame(draw);
-  setTimeout(() => cancelAnimationFrame(frame), duration + 100);
 }
 
 function Section({ title, children }) {
@@ -221,7 +183,6 @@ function Field({ label, children }) {
 
 const s = {
   page: { minHeight: "100vh", background: "var(--off-white)" },
-  canvas: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 100 },
   nav: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 40px", background: "rgba(250,250,249,0.92)", borderBottom: "1px solid rgba(133,208,205,0.25)", backdropFilter: "blur(8px)", position: "sticky", top: 0, zIndex: 10 },
   navLogo: { fontSize: "13px", fontWeight: 600, color: "var(--dark)", letterSpacing: "0.5px", textTransform: "uppercase" },
   navRole: { fontWeight: 400, color: "var(--mid)" },
@@ -299,6 +260,13 @@ const css = `
   @keyframes drawCheck {
     from { stroke-dashoffset: 40; }
     to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes confettiFall {
+    to {
+      transform: translateY(600px) rotateZ(360deg);
+      opacity: 0;
+    }
   }
 
   .success-pop {
