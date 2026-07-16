@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
 import { notion, DB_ID, title, rich, dateProp } from "@/lib/notion";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request) {
   try {
@@ -31,21 +28,11 @@ export async function POST(request) {
       properties,
     });
 
-    // Try to send email
-    try {
-      if (process.env.RESEND_API_KEY && process.env.NOTIFICATION_EMAIL) {
-        await resend.emails.send({
-          from: "noreply@resend.dev",
-          to: process.env.NOTIFICATION_EMAIL,
-          subject: `New onboarding submission from ${body.name}`,
-          html: `<h2>New Submission from ${body.name}</h2><p>Email: ${body.email}</p><p>Phone: ${body.phone}</p><p>Company: ${body.company}</p><p>Notes: ${body.notes}</p>`,
-        });
-      }
-    } catch (emailError) {
-      console.log("Email failed, but Notion saved:", emailError);
-    }
-
-    return NextResponse.json({ ok: true, id: page.id });
+    return NextResponse.json({
+      ok: true,
+      id: page.id,
+      url: page.url,
+    });
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json(
