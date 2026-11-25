@@ -166,6 +166,72 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes drawCheck { from { stroke-dashoffset: 40; } to { stroke-dashoffset: 0; } }
 
+    /* ---------- Festive touches ---------- */
+    :root { --gold: #e8c468; --gold-soft: #f3e2b0; }
+    body {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(232,196,104,0.14) 0, transparent 32%),
+        radial-gradient(circle at 88% 4%, rgba(249,216,218,0.55) 0, transparent 30%),
+        var(--off-white);
+    }
+    #snow { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    nav, .container { position: relative; z-index: 1; }
+    .tag.festive { color: #b8913a; border-left-color: var(--gold); }
+    .tag.festive::after { content: " ✦"; color: var(--gold); }
+
+    .advent {
+      background: var(--dark); color: var(--white);
+      border-radius: 8px; padding: 32px 32px 28px; margin: 36px 0 32px;
+      position: relative; overflow: hidden;
+      box-shadow: 0 8px 30px rgba(28,43,58,0.18);
+    }
+    .advent::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        radial-gradient(1.5px 1.5px at 8% 20%, rgba(232,196,104,0.9), transparent),
+        radial-gradient(1px 1px at 22% 78%, rgba(250,250,249,0.7), transparent),
+        radial-gradient(1.5px 1.5px at 47% 12%, rgba(250,250,249,0.6), transparent),
+        radial-gradient(1px 1px at 68% 84%, rgba(232,196,104,0.8), transparent),
+        radial-gradient(1.5px 1.5px at 91% 30%, rgba(250,250,249,0.7), transparent),
+        radial-gradient(1px 1px at 80% 8%, rgba(232,196,104,0.7), transparent);
+    }
+    .advent-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 20px; position: relative; }
+    .advent-title { font-family: 'Bodoni Moda', Georgia, serif; font-size: 26px; font-weight: 500; line-height: 1.15; }
+    .advent-title em { font-style: italic; color: var(--gold); font-weight: 400; }
+    .advent-count { font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold-soft); white-space: nowrap; }
+    .advent-count strong { font-family: 'Bodoni Moda', Georgia, serif; font-size: 30px; color: var(--gold); letter-spacing: 0; margin-right: 4px; }
+
+    .doors { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; position: relative; }
+    .door {
+      aspect-ratio: 1 / 1.1; border-radius: 6px;
+      border: 1.5px solid rgba(232,196,104,0.55);
+      background: linear-gradient(160deg, rgba(250,250,249,0.08), rgba(250,250,249,0.02));
+      display: flex; align-items: center; justify-content: center; position: relative;
+      font-family: 'Bodoni Moda', Georgia, serif; font-size: 22px; color: var(--gold-soft);
+      transition: background 0.4s, border-color 0.4s, transform 0.4s;
+    }
+    .door.taken { background: var(--blush); border-color: var(--blush); color: rgba(28,43,58,0.35); }
+    .door.taken::before, .door.taken::after {
+      content: ""; position: absolute; width: 62%; height: 2px; border-radius: 2px;
+      background: #c0392b; opacity: 0.75;
+    }
+    .door.taken::before { transform: rotate(45deg); }
+    .door.taken::after { transform: rotate(-45deg); }
+    .door.just-taken { animation: doorShut 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .door.loading { opacity: 0.4; }
+    @keyframes doorShut { 0% { transform: scale(1); } 40% { transform: scale(1.18) rotate(-4deg); } 100% { transform: scale(1); } }
+
+    .advent-note { margin-top: 18px; font-size: 13px; color: rgba(250,250,249,0.72); line-height: 1.6; position: relative; }
+    .advent.full .advent-note { color: var(--gold-soft); }
+
+    @media (prefers-reduced-motion: reduce) { #snow { display: none; } .door.just-taken { animation: none; } }
+
+    @media (max-width: 600px) {
+      .advent { padding: 24px 18px 22px; }
+      .advent-head { flex-direction: column; gap: 6px; }
+      .doors { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    }
+
     @media (max-width: 600px) {
       nav { padding: 16px 20px; }
       .nav-logo, .nav-back { font-size: 11px; }
@@ -176,6 +242,8 @@
 </head>
 <body>
 
+<canvas id="snow" aria-hidden="true"></canvas>
+
 <nav>
   <span class="nav-logo">Nina Mistry <span>| Launch Architect</span></span>
   <a href="https://nina-mistry.com" class="nav-back">← Back to site</a>
@@ -183,12 +251,21 @@
 
 <div class="container">
   <header>
-    <p class="tag">12 free funnel audits</p>
+    <p class="tag festive">The 12 days of funnels</p>
     <h1>Is your funnel ready for <em>2027?</em></h1>
-    <p class="sub">I'm doing 12 free funnel audits before Christmas. Once they're gone, they're gone.</p>
+    <p class="sub">I'm doing 12 free funnel audits before Christmas, one for each door below. Once they're gone, they're gone.</p>
     <p class="sub">Fill this in (it takes about 3 minutes) and I'll look through your funnel myself. You'll get a private video walkthrough showing where people are quietly slipping away, and the first thing I'd fix going into 2027.</p>
     <p class="sub">Don't worry if things are messy or half-built. That's exactly what I'm looking for.</p>
     <p class="signoff">Nina x</p>
+
+    <div class="advent" id="advent" aria-live="polite">
+      <div class="advent-head">
+        <p class="advent-title">Your <em>advent</em> of audits</p>
+        <p class="advent-count"><strong id="spots-left">12</strong><span id="spots-label">of 12 left</span></p>
+      </div>
+      <div class="doors" id="doors"></div>
+      <p class="advent-note" id="advent-note">Every time someone claims an audit, a door gets crossed off.</p>
+    </div>
   </header>
 
   <div class="card">
@@ -365,7 +442,7 @@
       </div>
 
       <div class="form-footer">
-        <button type="submit" class="btn-primary" id="submit-btn">Send me my audit</button>
+        <button type="submit" class="btn-primary" id="submit-btn">Claim my door</button>
         <p class="small-print">By sending this you're happy for me to email you about your audit and my weekly tips. Unsubscribe any time.</p>
       </div>
     </form>
@@ -386,12 +463,85 @@
 <script>
   // Absolute URL so this form also works if pasted into a Systeme page on nina-mistry.com
   const ENDPOINT = 'https://nina-client-onboarding.vercel.app/api/funnel-audit';
-  const BUTTON_TEXT = 'Send me my audit';
+  const BUTTON_TEXT = 'Claim my door';
+  const BUTTON_TEXT_FULL = 'Put me first in line';
 
   const form = document.getElementById('audit-form');
   const submitBtn = document.getElementById('submit-btn');
   const errorBox = document.getElementById('error-box');
   const successState = document.getElementById('success-state');
+
+  // ---------- Advent calendar ----------
+  let spots = null;
+  const doorsEl = document.getElementById('doors');
+
+  function renderDoors(taken, total, animateLast) {
+    spots = { taken, total, left: total - taken };
+    doorsEl.innerHTML = '';
+    for (let i = 1; i <= total; i++) {
+      const d = document.createElement('div');
+      const isTaken = i <= taken;
+      d.className = 'door' + (isTaken ? ' taken' : '') + (animateLast && i === taken ? ' just-taken' : '');
+      d.textContent = i;
+      d.setAttribute('aria-label', 'Audit ' + i + (isTaken ? ', taken' : ', available'));
+      doorsEl.appendChild(d);
+    }
+    const left = total - taken;
+    document.getElementById('spots-left').textContent = left;
+    document.getElementById('spots-label').textContent = 'of ' + total + ' left';
+    const advent = document.getElementById('advent');
+    const note = document.getElementById('advent-note');
+    advent.classList.toggle('full', left === 0);
+    if (left === 0) {
+      note.textContent = 'All 12 doors are open. Fill this in anyway and you\'ll be first in line for the next round.';
+      submitBtn.textContent = BUTTON_TEXT_FULL;
+    } else if (left <= 3) {
+      note.textContent = 'Only ' + left + ' door' + (left === 1 ? '' : 's') + ' left. Grab yours before they\'re gone.';
+    } else {
+      note.textContent = 'Every time someone claims an audit, a door gets crossed off.';
+    }
+  }
+
+  // Show 12 closed doors straight away, then update with the live count.
+  (function () {
+    for (let i = 1; i <= 12; i++) {
+      const d = document.createElement('div');
+      d.className = 'door loading';
+      d.textContent = i;
+      doorsEl.appendChild(d);
+    }
+    fetch(ENDPOINT, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => renderDoors(d.taken, d.total, false))
+      .catch(() => doorsEl.querySelectorAll('.door').forEach(el => el.classList.remove('loading')));
+  })();
+
+  // ---------- Gentle snowfall ----------
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const c = document.getElementById('snow');
+    const ctx = c.getContext('2d');
+    let flakes = [];
+    function size() {
+      c.width = window.innerWidth; c.height = window.innerHeight;
+      const n = Math.round(Math.min(60, c.width / 22));
+      flakes = Array.from({ length: n }, () => ({
+        x: Math.random() * c.width, y: Math.random() * c.height,
+        r: Math.random() * 1.8 + 0.8, s: Math.random() * 0.4 + 0.2, w: Math.random() * Math.PI * 2,
+      }));
+    }
+    function tick() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      flakes.forEach(f => {
+        f.y += f.s; f.w += 0.01; f.x += Math.sin(f.w) * 0.25;
+        if (f.y > c.height + 4) { f.y = -4; f.x = Math.random() * c.width; }
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(103,131,194,0.22)'; ctx.fill();
+      });
+      requestAnimationFrame(tick);
+    }
+    size(); window.addEventListener('resize', size); tick();
+  })();
 
   function val(name) {
     const el = form.elements[name];
@@ -462,6 +612,7 @@
       });
 
       if (res.ok) {
+        if (spots) renderDoors(Math.min(spots.taken + 1, spots.total), spots.total, true);
         const via = { 'Instagram DM': 'your Instagram DMs', 'LinkedIn DM': 'your LinkedIn messages' }[body.sendVia] || 'your inbox';
         document.getElementById('send-via-text').textContent = via;
         form.style.display = 'none';
@@ -473,7 +624,7 @@
     } catch {
       showError('Something went wrong and your answers didn\'t send. Please try again, or message me on Instagram.');
       submitBtn.disabled = false;
-      submitBtn.textContent = BUTTON_TEXT;
+      submitBtn.textContent = spots && spots.left === 0 ? BUTTON_TEXT_FULL : BUTTON_TEXT;
     }
   });
 </script>

@@ -15,7 +15,7 @@ function corsHeaders(origin) {
   const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[2];
   return {
     "Access-Control-Allow-Origin": allowed,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
 }
@@ -34,6 +34,62 @@ function multi(values) {
       .filter(Boolean)
       .map((name) => ({ name: name.slice(0, 100) })),
   };
+}
+
+// Advent calendar: how many of the 12 free spots are taken.
+// Counts every row in the database except ones marked "Not Now",
+// so delete test rows (or mark them Not Now) to free a door back up.
+const TOTAL_SPOTS = Number(process.env.AUDIT_TOTAL_SPOTS || 12);
+const AUDIT_DATA_SOURCE_ID =
+  process.env.NOTION_AUDIT_DATA_SOURCE_ID || "423c1ada-cbe7-81c2-8a68-000ba22c6c31";
+
+async function countTaken() {
+  let taken = 0;
+  let cursor;
+  do {
+    const res = await fetch(
+      `https://api.notion.com/v1/data_sources/${AUDIT_DATA_SOURCE_ID}/query`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.NOTION_TOKEN}`,
+          "Notion-Version": "2025-09-03",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          page_size: 100,
+          start_cursor: cursor,
+          filter: {
+            or: [
+              { property: "Audit Status", select: { is_empty: true } },
+              { property: "Audit Status", select: { does_not_equal: "Not Now" } },
+            ],
+          },
+        }),
+        cache: "no-store",
+      }
+    );
+    if (!res.ok) throw new Error(`Notion count failed: ${res.status} ${await res.text()}`);
+    const data = await res.json();
+    taken += data.results.length;
+    cursor = data.has_more ? data.next_cursor : undefined;
+  } while (cursor);
+  return taken;
+}
+
+export async function GET(request) {
+  const origin = request.headers.get("origin") || "";
+  const headers = { ...corsHeaders(origin), "Cache-Control": "no-store" };
+  try {
+    const taken = Math.min(await countTaken(), TOTAL_SPOTS);
+    return NextResponse.json(
+      { total: TOTAL_SPOTS, taken, left: TOTAL_SPOTS - taken },
+      { headers }
+    );
+  } catch (error) {
+    console.error("Notion count error (funnel audit):", error);
+    return NextResponse.json({ error: "Could not count spots" }, { status: 500, headers });
+  }
 }
 
 export async function OPTIONS(request) {
